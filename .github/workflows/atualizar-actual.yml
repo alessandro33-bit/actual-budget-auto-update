@@ -1,0 +1,37 @@
+name: Atualizar Actual Budget
+
+on:
+  schedule:
+    - cron: "17 6 15 * *"
+      timezone: "America/Sao_Paulo"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: actual-budget-update
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    name: Atualizar servidor
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Instalar Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Publicar versão estável mais recente
+        run: >
+          flyctl deploy
+          --image actualbudget/actual-server:latest
+          --app minhas-financas-budget
+          --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Verificar servidor
+        run: flyctl status --app minhas-financas-budget
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
